@@ -12,6 +12,6 @@ public interface MessageMapper {
     @Options(useGeneratedKeys=true, keyColumn="id", keyProperty="id")
     long insertNewMessage(Message message);
 
-    @Select("SELECT * FROM xim.xim_message WHERE `id_room`=#{id_room} AND `timestamp` < #{end_timestamp} ORDER BY `timestamp` DESC LIMIT #{count};")
+    @Select("SELECT * FROM xim_message WHERE `id_room`=#{id_room} AND `timestamp` < #{end_timestamp} ORDER BY `timestamp` DESC LIMIT #{count};")
     List<Message> loadHistory(@Param("id_room") int roomId, @Param("end_timestamp") long endTimestamp, @Param("count") int count);
 }

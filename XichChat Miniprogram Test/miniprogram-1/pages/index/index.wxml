@@ -1,0 +1,29 @@
+<!--index.wxml-->
+<view class="container">
+
+    <view class="pane">
+        <input placeholder="账号" bindinput="onUsername"/>
+        <input placeholder="密码" bindinput="onPassword"/>
+        <button bindtap="login">登录</button>
+        <button bindtap="register">注册</button>
+    </view>
+    
+    <view class="pane">
+        <input placeholder="对象用户名" bindinput="onReceiver"/>
+        <button bindtap="createDirectMessage">创建私人会话</button>
+    </view>
+    
+    <view class="pane">
+        <button bindtap="getRoomList">获取房间列表</button>
+    </view>
+
+    <view class="pane">
+        <input placeholder="消息内容" bindinput="onInput" />
+        <input placeholder="房间id" bindinput="onRoomId" />
+        <button bindtap="sendMessage">发送消息</button>
+        <button bindtap="loadHistory">获取历史记录</button>
+        <button bindtap="markRead">标记房间为已读</button>
+    </view>
+
+  
+</view>

@@ -20,4 +20,7 @@ public interface RoomMapper {
 
     @Insert("INSERT INTO xim_room_member (username_user, id_room) VALUES (#{username_user}, #{id_room})")
     void joinRoom(@Param("username_user") String username, @Param("id_room") int roomId);
+
+    @Update("UPDATE xim_room_member SET timestamp = #{timestamp} WHERE id_room=#{roomId} AND username_user=#{username}")
+    void markReadRoom(@Param("timestamp") int timestamp, @Param("roomId") int roomId, @Param("username") String username);
 }

@@ -13,7 +13,9 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 public class WebSocketController extends TextWebSocketHandler {
 
@@ -38,6 +40,8 @@ public class WebSocketController extends TextWebSocketHandler {
     private ICreateDirectMessageHandler createDirectMessageHandler;
     @Autowired
     private IGetRoomListHandler getRoomListHandler;
+    @Autowired
+    private IMarkReadHandler markReadHandler;
 
     private static void send(WebSocketSession session, String message) throws IOException {
         session.sendMessage(new TextMessage(message));
@@ -111,7 +115,7 @@ public class WebSocketController extends TextWebSocketHandler {
                 return;
             }
 
-            long timestamp = System.currentTimeMillis();
+            long timestamp = System.currentTimeMillis() / 1000;
 
             // check parameters
             if (request.getParameters().length != 2) {
@@ -125,7 +129,8 @@ public class WebSocketController extends TextWebSocketHandler {
             try {
                 roomId = Integer.parseInt(request.getParameters()[1]);
             } catch (Exception e) {
-                throw new Exception("Room id must be an integer.");
+                sendError(id, session, "Room id must be an integer.");
+                return;
             }
 
             // check if the sender is in this room
@@ -179,16 +184,19 @@ public class WebSocketController extends TextWebSocketHandler {
             }
 
             // Load messages from database
-            List<Message> messageHistory = loadHistoryHandler.load(roomId, endTimestamp, count);
+            List<Message> messageHistory;
+            try{
+                messageHistory = loadHistoryHandler.load(roomId, endTimestamp, count);
+            }catch(Exception e){
+                sendError(id, session, "Failed to load history message: " + e.getMessage());
+                throw new Exception(e);
+//                return;
+            }
 
             // Send to the user
             session.sendMessage(new TextMessage(JSON.toJSONString(
                     new Response(id, "history",
-                            new HistoryMessage(
-                                    request.getParameters()[0],
-                                    request.getParameters()[1],
-                                    messageHistory
-                            )
+                            messageHistory
                     ))
             ));
         }else if("createDirectMessage".equals(request.getCommand())){
@@ -232,6 +240,30 @@ public class WebSocketController extends TextWebSocketHandler {
             }catch (Exception e){
                 sendError(id, session, "Failed to get room list: " + e.getMessage());
             }
+
+        }else if("markRead".equals(request.getCommand())){
+            if( !stateKeeper.isLogin(session)){
+                sendError(id, session, "Not login yet.");
+                return;
+            }
+
+            // parse parameters
+            int roomId;
+            try{
+                roomId = Integer.parseInt(request.getParameters()[0]);
+            }catch (Exception e){
+                sendError(id, session, "The parameters field should be [\"roomId\"]");
+                return;
+            }
+
+            // update room status
+            try{
+                markReadHandler.markReadRoom((int)(System.currentTimeMillis()/1000), roomId, stateKeeper.getUsername(session));
+            }catch (Exception e){
+                sendError(id, session, "Failed to mark read status: " + e.getMessage());
+            }
+
+            sendSuccess(id, session);
 
         }
 //        else if ("delete".equals(request.getCommand())) {

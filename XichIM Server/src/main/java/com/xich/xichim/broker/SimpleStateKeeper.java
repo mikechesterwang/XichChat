@@ -91,6 +91,11 @@ public class SimpleStateKeeper {
     public void logout(WebSocketSession session){
         // remove from information mapper
         String username = session2username.get(session);
+
+        if(username == null){
+            return;
+        }
+
         session2username.remove(session);
         username2session.remove(username);
 
@@ -111,5 +116,11 @@ public class SimpleStateKeeper {
             roomChannel.put(roomId, new HashSet<>());
         }
         roomChannel.get(roomId).add(session);
+
+        if( ! roomList.containsKey(session)){
+            roomList.put(session, new HashSet<Integer>());
+        }
+
+        roomList.get(session).add(roomId);
     }
 }
